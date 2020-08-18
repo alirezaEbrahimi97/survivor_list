@@ -7,19 +7,20 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
-#FIXME: naive bayes needs float/integer data, data shall be one hotted 
-#Age, AgePart, Sex-Age and Country-Age reduce accuracy
+# FIXME: naive bayes needs float/integer data, data shall be one hotted 
+# Age, AgePart, Sex-Age and Country-Age reduce accuracy
+# Firstname and Last name aren't repeated toghether
 
 class naiveBayes(object):
     def __init__(self, fileName="passenger-list.csv"):
-        #reading data
+        # reading data
         self.df = pd.read_csv(fileName)
 
     def trainAgent(self):
         self.gnb = GaussianNB() 
         self.gnb.fit(self.X_train, self.y_train)
 
-    def splitData(self, x_list=['Country', 'Sex', 'Category', 'AgePart', 'Country-Age'], y_list=['Survived']):
+    def splitData(self, x_list=['Country', 'Sex', 'Category', 'AgePart', 'Country-Age', 'Sex-Age', 'MeanAgeDifference'], y_list=['Survived']):
         X = self.df[x_list]
         y = self.df[y_list]
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=1)
@@ -37,37 +38,31 @@ class naiveBayes(object):
         for el in encodeList:
             model.encoder(el)
         
-        #brings down the accurecy
+        # brings down the accurecy
         self.df['AgePart'] = self.df['Age'] // 10
 
-        #reduces the accuracy
+        # reduces the accuracy
         self.df['Country-Age'] = self.df['Country'] * 100 + self.df['Age']
         self.df['Sex-Age'] = self.df['Sex'] * 2 + self.df['Age']
 
+        meanAge = np.mean(self.df['Age'])
+        self.df['MeanAgeDifference'] = self.df['Age'] - meanAge
+        self.df['MeanAgeDifference'] = self.normalize('MeanAgeDifference')
+
+    def normalize(self, src):
+        maxDf = np.max(self.df[src])
+        minDf = np.min(self.df[src])
+        return (self.df[src] - minDf) / (maxDf - minDf)
+
     def plotConfusionMatrix(self):
-        # print(self.y_pred)
-        # print(self.y_test.values)
-        # self.y_test = self.y_test.values
-        # # equal = self.y_pred == self.y_test
-        # TT = ((self.y_pred == self.y_test) & (self.y_test == 1)).sum()
-        # FF = ((self.y_pred == self.y_test) & (self.y_test == 0)).sum()
-        # TF = ((self.y_pred != self.y_test) & (self.y_test == 1)).sum()
-        # FT = ((self.y_pred != self.y_test) & (self.y_test == 0)).sum()
-        # print("actual value")
-        # print(TT, TF)
-        # print(FT, FF)
-        print(f"number of true ones: {(self.y_test == 1).sum()}")
-        print(f"number of true zeros: {(self.y_test == 0).sum()}")
-        print(f"number of predicted ones: {(self.y_pred == 1).sum()}")
-        print(f"number of predicted zeros: {(self.y_pred == 0).sum()}")
-        # TT = ((self.y_pred == self.y_test) & (self.y_test == 1)).sum() / (self.y_test == 1).sum()
-        # FF = ((self.y_pred == self.y_test) & (self.y_test == 0)).sum() / (self.y_test == 0).sum()
-        # TF = ((self.y_pred != self.y_test) & (self.y_test == 1)).sum() / (self.y_test == 1).sum()
-        # FT = ((self.y_pred != self.y_test) & (self.y_test == 0)).sum() / (self.y_test == 0).sum()
-        # print("precentage")
-        # print(TT, TF)
-        # print(FT, FF)
-        # plt.show()
+        self.y_test = np.array(list(self.y_test['Survived']))
+        TT = ((self.y_pred == self.y_test) & (self.y_test == 1)).sum()
+        FF = ((self.y_pred == self.y_test) & (self.y_test == 0)).sum()
+        TF = ((self.y_pred != self.y_test) & (self.y_test == 1)).sum()
+        FT = ((self.y_pred != self.y_test) & (self.y_test == 0)).sum()
+        print("actual value")
+        print(TT, TF)
+        print(FT, FF)
     
 model = naiveBayes()
 
@@ -77,6 +72,7 @@ model.splitData()
 model.trainAgent()
 model.testModel()
 model.plotConfusionMatrix()
-# unq, counts = np.unique(model.df['Country'], return_counts=True)
+# model.df['First-Last'] = model.df['Firstname'] + '-' + model.df['Lastname']
+# unq, counts = np.unique(model.df['First-Last'], return_counts=True)
 # print(unq)
-#print(counts)
+# print(counts)
