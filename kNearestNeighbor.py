@@ -29,10 +29,10 @@ class kNearestNeighbor(object):
 
     def testModel(self):
         self.y_pred = self.knn.predict(self.X_test)
-        print("Gaussian Naive Bayes model accuracy(in %):", metrics.accuracy_score(self.y_test, self.y_pred)*100)
+        print("K nearest neighbor model accuracy(in %):", metrics.accuracy_score(self.y_test, self.y_pred)*100)
 
     def getProb(self, xTest):
-        return knn.predict_proba(self.xTest)
+        return self.knn.predict_proba(self.xTest)
 
     def plotConfusionMatrix(self):
         self.y_test = np.array(list(self.y_test['Survived']))
